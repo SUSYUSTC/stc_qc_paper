@@ -1,0 +1,22 @@
+# for all complete calculations, the last 4 iterations are averaged, thus the real CCSD target error is the input target error / 2
+
+# JIT is heavily used in the code, and compilation happens everytime the code is run. so one should run the code first time for compilation, and second time for actual timing. For product runs, put all calculations in a SINGLE python script so that compilation only happens once.
+
+# The implementation is still a preliminary demonstration, so the performance can be unstable on different machines (and it's known some part of code has unstable performance due to some pytorch JIT issues)
+
+# The following commands to generated the results in the main text are provided as a reference. The reported results are obtained with some fine-tunings in the code, but does not lead to any significant change in the results.
+
+# for Nsample scaling on water cluster (use canonical and pure implementation, need to modify source code)
+python stc_cc_general.py xyz/waterXXX_min.xyz 6-31g 0.2 15 -diis 4 -shift 4 -pt 1,2,0.2
+
+# for Nsample scaling on water cluster (use pure and optimized implementation, need to modify source code)
+python stc_cc_general.py xyz/waterXXX_min.xyz 6-31g 0.4 12 -diis 4 -shift 4 -pt 1,1,0.2
+
+# for benzene energy stats (use pure implementation, need to modify source code)
+python stc_cc_general xyz/benzene.xyz cc-pvtz 0.5 40 -diis 4 -shift 4 -pt 6,4,0.2
+
+# for Si-doped diamond calculation
+python stc_cc_general.py xyz/cell/diamond_Si_XXX.xyz gth-dzvp 1.6 12 --pbc -freezing 0.016 -diis 4 -shift 2 -pt 1,2,0.5 -init_damp -0.5 --minX
+
+# for PAH/H-hBN calculations
+python stc_cc_general.py xyz/lattice/XXX.xyz cc-pvdz 0.5 12 --frozen_core -freezing 0.005 -diis 4 -shift 4 -pt 1,2,0.2
