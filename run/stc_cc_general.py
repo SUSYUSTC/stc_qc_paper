@@ -2,15 +2,18 @@
 import os
 os.environ['PYSCF_MAX_MEMORY'] = '100000'
 
-# Although the run-time performance is very good, the pytorch compilation is very slow.
+# Although the run-time performance is very good, the pytorch compilation can take some time.
 # Fortunately, there are a cache behavior in pytorch, but there're a few things to be careful about to use it, which will be mentioned below.
-# Due to the dynamic compilation feature introduced recently in pytorch, changing molecules and basis sets does not cause recompilation (with a few exceptions)
+# Due to the dynamic compilation feature introduced recently in pytorch, changing molecules and basis sets does not cause recompilation (with a few exceptions, mainly happens when the system is too small)
 
-# The number of threads is set by (1) looking for environmental variable SLURM_JOB_CPUS_PER_NODE (see __init__.py), (2) if not found, use os.cpu_count()
-# In case you want to change it, set SLURM_JOB_CPUS_PER_NODE to the desired number of threads as a temporal solution.
+# The number of threads is set at import time of stc_cc by (1) looking for environmental variable SLURM_JOB_CPUS_PER_NODE (see __init__.py), (2) if not found, use os.cpu_count()
 # This is because slurm sometimes gives os.cpu_count() as the total number of cores in the machine, instead of the number of cores allocated to the job
+# In case you want to manually, a "hack" way is to set SLURM_JOB_CPUS_PER_NODE to the desired number before importing stc_cc
 # An undesired pytorch issue is that, code with different number of threads are compiled separately.
 # Currently I set the cache dir as stc_cc/torch_cache_{N}threads by nthreads N, so changing the number of threads does not mess up cache.
+
+# The following setups helps you to know whether something slow is caused by JIT recompilation
+#os.environ['TORCH_LOGS'] = 'recompiles'
 
 def make_types(*tps):
     return lambda s: tuple([tp(item) for tp, item in zip(tps, s.split(','))])
@@ -23,36 +26,39 @@ parser.add_argument('xyzfile', type=str)
 parser.add_argument('basis', type=str)
 parser.add_argument('error', type=float, help='target CCSD energy error (mH)')
 parser.add_argument('niters', type=int, help='number of CCSD iterations')
+parser.add_argument('-method', type=str, help='STC-CCSD basis and implementation. One of canonical/pure/opt, the last two are pure/optimized implementations', default='opt')
 parser.add_argument('-charge', type=int, default=0)
 parser.add_argument('-freezing', type=float, default=None, help='freeze small amplitudes for better convergence, value is the allowed total energy error (mH)')
 parser.add_argument('-diis', type=int, default=None, help='DIIS space size')
 parser.add_argument('-shift', type=float, default=None, help='diagonal shift of DIIS to reduce correlation between iterations')
 parser.add_argument('-init_damp', type=float, default=None, help='damping factor for first iteration')
-parser.add_argument('-pt', type=make_types(int, int, float), default=None, help='(T) space, naverage, error')
-parser.add_argument('-log', type=str, default=None)
+parser.add_argument('-pt', type=make_types(int, int, float), default=None, help='(T) interval, naverage, error (mH)')
 parser.add_argument('--pbc', action='store_true', help='enable pbc and find lattice file by replacing .xyz with .lattice')
 parser.add_argument('--minX', action='store_true', help='set weights to minimize T amplitudes error, otherwise minimize energy error')
 parser.add_argument('--frozen_core', action='store_true')
 parser.add_argument('--ccd', action='store_true', help='perform CCD calculation')
 parser.add_argument('--linear', action='store_true', help='linearized CCD calculation, must be used together with --ccd')
 parser.add_argument('--exact', action='store_true')
+parser.add_argument('--verbose', type=float, default=None, help='damping factor for first iteration')
 
 # a few notes about the options:
-# 1. currently in the code, I averaged the last m iterations (with m=4), which is verified as a good strategy (see SI). So if you want to set CCSD target error as epsilon, you should set the input error as sqrt(m) * epsilon
-# 2. freezing is typically set as error / 100, which is a very safe value, while gives some benefits. But it's not an necessary option
-# 3. the option pt is somewhat hard to understand and requires some more explanantion here:
-#    if -pt is not set, (T) calculation is not performed; otherwise it take 3 values with (int, int, float) types, say n, m, e
-#    e is simply the target error of (T)
+# 1. basis and implementation choice of STC-CCSD
+#    canonical basis: (for demonstration only)
+#    local basis with pure implementaion: use a mixed local-canonical basis, do all N^5 and N^6 contractions by STC, mainly for demonstration of scaling, not practically the best
+#    local basis with optimized implementation: use a fully local basis, do all N^6 and part of N^5 contractions by STC, leave some N^5 contractions to be performed exactly (always recommended for practical calculations)
+# 2. currently in the code, I averaged the last m iterations (with m=4), which is verified as a good strategy (see SI and Fig. 2). So if you want to set CCSD target error as epsilon, you should set the input error (i.e. the third command line argument) as sqrt(m) * epsilon
+# 3. freezing is typically set as error / 100, which is a very safe value (it's the estimated total energy error), while giveing some benefits. But it's not an necessary option
+# 4. the option pt is somewhat hard to understand and requires some more explanantion here:
+#    if -pt is not set, (T) calculation is not performed; otherwise it take 3 values interval, naverage, error, with (int, int, float) types
+#    error is simply the target error of (T) in mH
 #    currently the (T) calculation requires two "uncorrelated" CCSD iterative solutions to reduce the bias generated from stochastic CCSD results (see SI)
-#    the first CCSD solution is taken by average iteration 0, 1, ..., m-1 (counted from the end), the second CCSD solution is taken by average iteration m+n-1, m+n, ..., m+n*2-2 (also counted from the end)
+#    both solutions are obtained by averaging a few iterations, specified by the naverage argument.
+#    interval is the iteration gap between two solutions, to make them decorrelated.
+#    For example, if there are totall 10 iterations, interval = 2, naverage = 3, then average of iterations (4, 5, 6) forms one solution, while (8, 9, 10) forms another
 #    typically n=m=2 looks more than enough for most systems, while n=m=1 is enough for some simple systems but not always enough
+# 5. -shift is to apply diagonal shift to the DIIS solver. The higher this value is, the more it forces the results to be close to the last one, so that it becomes more uncorrelated with old solutions
 
 options = parser.parse_args()
-if options.log is not None:
-    file = open(options.log, 'a', buffering=1)
-    sys.stdout = file
-else:
-    file = None
 if 'SLURM_JOB_ID' in os.environ:
     print('slurm job id', os.environ['SLURM_JOB_ID'])
 print(*sys.argv, sep=' ')
@@ -62,15 +68,14 @@ import torch
 import pyscf
 from stc_cc import cc, utils_pyscf, sample, stc
 
-# some options, shoult be good for all systems and machines
+# some minor setups, does not affect result, shoult be good for all systems and machines
 stc.quota_sampling = True
 cc.use_alias_for_X2vvoo = True
 cc.jit_estimation = True
-#cc.test_nsamples = 1000
-#cc.nrun_estimation = 16
-#cc.std_tol_X1 = cc.std_tol_X2 = 0.01
 sample.pack_sign = True
 sample.align_alias = False
+
+# use S^{-1/2} for orthonormal auxiliary basis, which is more local, and is a better initial guess for localization later.
 utils_pyscf.make_df_eig()
 
 import builtins
@@ -139,28 +144,28 @@ Cvir = C[:, v]
 C = np.concatenate((Cocc, Cvir), axis=1)
 
 import stc_orb
-PM_guess = pbc
+# pyscf localization seems strangely slow for small systems. I reimplemented a faster one, but sometimes give slightly different results. Since it is an just initial guess, it shouldn't matter.
+PM_guess = True
 Cocc_guess, Cvir_guess = stc_orb.get_guess(mol, Cocc, Cvir, PM=PM_guess)
-
-# Choose one of the three basis choice in the following
-
-# canonical basis (for demonstration only)
-#Cocc_local, Cvir_local, Uaux = Cocc, Cvir, None
-#key_args = dict(canonical_denominator=True, minimal_stc=False)
-
-# mixed local-canonical basis, do all N^5 and N^6 contractions by STC, mainly for demonstration of scaling, not practically the best
-#Cocc_local, Cvir_local, Uaux = stc_orb.get_Rov_mix(rhf, Cocc_guess, Cvir_guess)
-#key_args = dict(canonical_denominator=False, minimal_stc=False)
-
-# fully local basis, do all N^6 and part of N^5 contractions by STC, leave some N^5 contractions to be performed exactly (always recommended for practical calculations)
-Cocc_local, Cvir_local, Uaux = stc_orb.get_Rov(rhf, Cocc_guess, Cvir_guess)
-key_args = dict(canonical_denominator=True, minimal_stc=True)
-
+if options.method == 'canonical':
+    Cocc_local, Cvir_local, Uaux = Cocc, Cvir, None
+    key_args = dict(canonical_denominator=True, minimal_stc=False)
+elif options.method == 'pure':
+    thres = 2e-3  # some tight value for safety
+    Cocc_local, Cvir_local, Uaux = stc_orb.get_Rov_mix(rhf, Cocc_guess, Cvir_guess, thres)
+    key_args = dict(canonical_denominator=False, minimal_stc=False)
+elif options.method == 'opt':
+    thres = 5e-3  # some tight value for safety
+    Cocc_local, Cvir_local, Uaux = stc_orb.get_Rov(rhf, Cocc_guess, Cvir_guess, thres)
+    key_args = dict(canonical_denominator=True, minimal_stc=True)
+else:
+    raise ValueError('Only support canonical/pure/opt for keyword method')
 Clocal = np.concatenate((Cocc_local, Cvir_local), axis=1)
+
 
 # block size of probability tables. Divide a size M table to M/b blocks, and build a M/b sized alias table to sample the block index, then do a O(b) cost search within the block
 # Its value balances the memory and time cost. The choice seems a little bit tricky: the sampling cost is likely not a smooth function of block size, and heavily machine-dependent
-# This annoying behavior is because I can't find a good way to implement the search inside the block, so I implemented in a hard-coding and non-dynamically-jittable way.
+# This annoying behavior is because I can't find a good way to implement the serach within block part in pytorch, so I implemented in a hard-coding and non-dynamically-jittable way.
 # I have another C++ implementation (CCD only), there's no this problem there.
 # Change this value leads to a full-recompilation of everything. So once tuned, don't change it.
 
@@ -178,7 +183,7 @@ for key, value in contractor_args.items():
     print(key, value)
 print()
 
-mycc = cc.StochasticCC(rhf, Clocal, target_error, Uaux=Uaux, verbose=0, **contractor_args)
+mycc = cc.StochasticCC(rhf, Clocal, target_error, Uaux=Uaux, verbose=1, **contractor_args)
 if options.minX:
     mycc.weights_out_E = False
 mycc.initialize()
@@ -248,11 +253,8 @@ print()
 # average the last a few iterations
 print('averaged CCSD energy', torch.stack(Es[-4:]).mean().item())
 if do_pt:
-    # I'm sure there're are some unexpected re-compilation bugs in the (T) code, but I haven't solved it yet.
+    # I'm sure there're are some unexpected re-compilation bugs in the (T) code, but I haven't got time to solve it yet.
     mycc.initialize_pt(release_cc_memory=True)
     mean, std = mycc.compute_pt_energy(vec_pt1, vec_pt2, pt_error, 4)
     print('(T) energy', mean.item(), 'std', std.item())
     del vec_pt1, vec_pt2
-
-if file is not None:
-    file.close()

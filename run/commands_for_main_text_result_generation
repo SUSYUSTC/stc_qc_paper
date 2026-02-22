@@ -1,22 +1,35 @@
-# for all complete calculations, the last 4 iterations are averaged, thus the real CCSD target error is the input target error / 2
+# for all full CCSD or CCSD(T) calculations, the last 4 iterations of CCSD are averaged, thus the real CCSD target error is the input target error / 2 (see SI). In the most common case, CCSD input target error = 0.5mH, (T) target error = 0.2mH, the full target error is sqrt((0.5/2)**2 + 0.2**2)mH \approx 0.32mH \approx 0.2kcal/mol
 
-# JIT is heavily used in the code, and compilation happens everytime the code is run. so one should run the code first time for compilation, and second time for actual timing. For product runs, put all calculations in a SINGLE python script so that compilation only happens once.
+# JIT is heavily used in the code, and compilation happens everytime the python environment is initialized (i.e. call of python as a system process, not each STC-CCSD(T) calculation). The compilation typically takes a few minutes. For timing benchmark, run the same code twice in a single python environment, and use the second one. For real runs, put all of your calculations in a single python script, so that compilation only happens once.
+# Personally I'm used to run everything in ipython console, so I just run the same command twice to get the timing. I'm not familiar with other cases, but in the worst case you can do a for i in range(2) over the full script
 
-# The implementation is still a preliminary demonstration, so the performance can be unstable on different machines (and it's known some part of code has unstable performance due to some pytorch JIT issues)
+# The implementation is still a preliminary demonstration, so I'm not sure about the performance stability on different machines (and it's known some part of code has unstable performance due to some internal pytorch JIT issues. I also have a quite fast and stable C++ implementation, but unfornatunately I only implemented CCD(T) with by hard-coding of STC operations, and singles are too complicated for hard-coding)
+# Nevertheless, I would be happy if you want to test or use it for your own research, and I'm happy to answer any questions
 
-# The following commands to generated the results in the main text are provided as a reference. The reported results are obtained with some fine-tunings in the code, but does not lead to any significant change in the results.
+# In principle, the results are reproducible with the same random seed. Parallelization should not induce extra randomness.
 
-# for Nsample scaling on water cluster (use canonical and pure implementation, need to modify source code)
-python stc_cc_general.py xyz/waterXXX_min.xyz 6-31g 0.2 15 -diis 4 -shift 4 -pt 1,2,0.2
+# The following commands to generated the results in the main text are provided for reference. The reported results are obtained with some fine-tunings in the code, but does not lead to any significant difference.
 
-# for Nsample scaling on water cluster (use pure and optimized implementation, need to modify source code)
-python stc_cc_general.py xyz/waterXXX_min.xyz 6-31g 0.4 12 -diis 4 -shift 4 -pt 1,1,0.2
+# for Nsample scaling on water cluster
+python stc_cc_general.py xyz/waterXXX_min.xyz 6-31g 0.4 12 -method canonical -diis 4 -shift 4 -pt 1,1,0.2
+python stc_cc_general.py xyz/waterXXX_min.xyz 6-31g 0.4 12 -method pure      -diis 4 -shift 4 -pt 1,1,0.2
+python stc_cc_general.py xyz/waterXXX_min.xyz 6-31g 0.4 12 -method opt       -diis 4 -shift 4 -pt 1,1,0.2
 
-# for benzene energy stats (use pure implementation, need to modify source code)
-python stc_cc_general xyz/benzene.xyz cc-pvtz 0.5 40 -diis 4 -shift 4 -pt 6,4,0.2
+# for Ncritical scaling on water cluster, let N[i] be the number of samples in the ith iteration, I numerically search the error such that N[-1] / N[0] \approx const. In principle the critical number corresponds to a large but non-infinite const, but the behavior around critical point is unstable (similar to any physical critical behavior), so I just set const = 3. The N[-1] is reported as the critical number in the main text. I don't have a separate code for this.
+
+# for benzene energy stats
+# More iterations are used here to really converge the systematic bias to 1e-6 Hartree level, but such low bias looks unnecessary for any practical application, so it is shown here just for demonstration.
+# The optimized implementation in fact gives faster convergence of systematic bias
+python stc_cc_general.py xyz/benzene.xyz cc-pvtz 0.5 40 -method pure -diis 4 -shift 4 -pt 6,4,0.2
+
+# for all benchmarking-level calculations below, the local STC-CCSD with optimized implementations are used. The freezing option generates some 1e-6 Hartree level error which is negligible for practical applications.
 
 # for Si-doped diamond calculation
+# this target error is quite tight in the solid sense (0.5meV/atom for 2x3x4 cell), but very loose in the molecular sense, so --minX is used for better stability instead of "greedy" energy variance.
 python stc_cc_general.py xyz/cell/diamond_Si_XXX.xyz gth-dzvp 1.6 12 --pbc -freezing 0.016 -diis 4 -shift 2 -pt 1,2,0.5 -init_damp -0.5 --minX
 
 # for PAH/H-hBN calculations
 python stc_cc_general.py xyz/lattice/XXX.xyz cc-pvdz 0.5 12 --frozen_core -freezing 0.005 -diis 4 -shift 4 -pt 1,2,0.2
+
+# for 20 benchmarking molecule calculations
+python stc_cc_general.py xyz/benchmarking/XXX.xyz cc-pvtz 0.5 12 --frozen_core -freezing 0.005 -diis 4 -shift 4 -pt 1,2,0.2
