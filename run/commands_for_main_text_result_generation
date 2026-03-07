@@ -32,4 +32,8 @@ python stc_cc_general.py xyz/cell/diamond_Si_XXX.xyz gth-dzvp 1.6 12 --pbc -free
 python stc_cc_general.py xyz/lattice/XXX.xyz cc-pvdz 0.5 12 --frozen_core -freezing 0.005 -diis 4 -shift 4 -pt 1,2,0.2
 
 # for 20 benchmarking molecule calculations
-python stc_cc_general.py xyz/benchmarking/XXX.xyz cc-pvtz 0.5 12 --frozen_core -freezing 0.005 -diis 4 -shift 4 -pt 1,2,0.2
+# currently I don't implement a convergence check for the STC-CCSD iterations, so I just set the number of iterations in an ad-hoc way (see niters_benchmarking)
+# for two dimers
+python stc_cc_general.py xyz/benchmarking/XXX.xyz aug-cc-pvtz,H:cc-pvtz 0.5 NITERS --frozen_core -freezing 0.005 -diis 4 -shift 4 -pt 1,2,0.2
+# for other 18
+python stc_cc_general.py xyz/benchmarking/XXX.xyz cc-pvtz 0.5 NITERS --frozen_core -freezing 0.005 -diis 4 -shift 4 -pt 1,2,0.2
