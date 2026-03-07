@@ -1,0 +1,3 @@
+STC results should be compared again DF-CCSD(T)
+DLPNO results should be compared again nonDF-CCSD(T) (confirmed with DLPNO developers)
+DF and non-DF results are slightly different, but typically
