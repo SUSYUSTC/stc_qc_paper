@@ -37,3 +37,8 @@ python stc_cc_general.py xyz/lattice/XXX.xyz cc-pvdz 0.5 12 --frozen_core -freez
 python stc_cc_general.py xyz/benchmarking/XXX.xyz aug-cc-pvtz,H:cc-pvtz 0.5 NITERS --frozen_core -freezing 0.005 -diis 4 -shift 4 -pt 1,2,0.2
 # for other 18
 python stc_cc_general.py xyz/benchmarking/XXX.xyz cc-pvtz 0.5 NITERS --frozen_core -freezing 0.005 -diis 4 -shift 4 -pt 1,2,0.2
+
+# for the ISOL24 reaction dataset
+# if indepenent variables A and B both have std sigma, then A - B has std sigma * sqrt(2). To obtain the 0.2 kcal/mol reaction energy target error, the individual target error should be ~0.14 kcal/mol. 
+# Setting CCSD error to 0.4/2=0.2mH (2 comes from averaging over 4 iterations) and (T) error to 0.1mH gives sqrt(0.2**2 + 0.1**2) mH = 0.224 mH = 0.14 kcal/mol.
+python stc_cc_general.py xyz/ISOL24/XXX.xyz cc-pvtz 0.4 NITERS --frozen_core -freezing 0.005 -diis 4 -shift 4 -pt 1,2,0.1
