@@ -14,7 +14,7 @@ import libformat
 kcal_mol = 0.6275
 
 # unit of ns_CCSD and ns_pt is million
-ns_CCSD, ns_pt, t_sample, t_STC, t_DLPNO, error_DLPNO = np.loadtxt("data_locality", skiprows=1, usecols=(5, 6, 7, 8, 9, 10)).T
+ns_CCSD, ns_pt, t_sample, t_STC, t_DLPNO, error_DLPNO = np.loadtxt(config.data("data_locality"), skiprows=1, usecols=(5, 6, 7, 8, 9, 10)).T
 xs = [0, 1, 2, 3]
 xticks = ['1x13', '2x8', '3x5', '4x4']
 get_ratio = lambda vec: vec / vec[0]
@@ -133,7 +133,7 @@ ax_ins = inset_axes(
     bbox_transform=plt.gca().transAxes,
 )
 
-img = plt.imread("./hBN_3x5.png")
+img = plt.imread(config.asset("hBN_3x5.png"))
 ax_ins.imshow(img, origin="lower")
 start = (-20, 25)
 x_space = 58
@@ -151,6 +151,6 @@ for ax, lab in zip([ax1, ax2, ax3_top, ax3_bot], ['A', 'B', 'C', 'D']):
     )
 
 plt.tight_layout()
-plt.savefig("locality.png")
+plt.savefig(config.fig("locality.png"))
 plt.close()
 #plt.show()

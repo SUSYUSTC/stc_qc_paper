@@ -2,6 +2,8 @@ import matplotlib
 matplotlib.rc('font', size=14)
 import matplotlib.pyplot as plt
 import numpy as np
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
 import libformat
 
 

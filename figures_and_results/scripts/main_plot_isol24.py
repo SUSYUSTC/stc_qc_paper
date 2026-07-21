@@ -15,19 +15,19 @@ import matplotlib.pyplot as plt
 get_mean = lambda x: np.mean(x)
 get_geo_mean = lambda x: np.exp(np.mean(np.log(x)))
 
-Nao = np.loadtxt("./stats_isol24", skiprows=1, usecols=1).astype(int)
+Nao = np.loadtxt(config.data("stats_isol24"), skiprows=1, usecols=1).astype(int)
 #order = np.argsort(Nao)
 order = np.arange(len(Nao))
 Nao = Nao[order]
 
-molecules = np.loadtxt("./stats_isol24", skiprows=1, usecols=0, dtype=str)[order]
+molecules = np.loadtxt(config.data("stats_isol24"), skiprows=1, usecols=0, dtype=str)[order]
 y = np.arange(len(molecules))
 
-err_dlpno_tight  = np.abs(np.loadtxt("./stats_isol24", skiprows=1, usecols=2))[order]
-err_stc          = np.abs(np.loadtxt("./stats_isol24", skiprows=1, usecols=3))[order]
+err_dlpno_tight  = np.abs(np.loadtxt(config.data("stats_isol24"), skiprows=1, usecols=2))[order]
+err_stc          = np.abs(np.loadtxt(config.data("stats_isol24"), skiprows=1, usecols=3))[order]
 
-time_dlpno_tight  = np.loadtxt("./stats_isol24", skiprows=1, usecols=4)[order]
-time_stc          = np.loadtxt("./stats_isol24", skiprows=1, usecols=5)[order]
+time_dlpno_tight  = np.loadtxt(config.data("stats_isol24"), skiprows=1, usecols=4)[order]
+time_stc          = np.loadtxt(config.data("stats_isol24"), skiprows=1, usecols=5)[order]
 
 print('DLPNO/Tight', get_mean(err_dlpno_tight), get_geo_mean(time_dlpno_tight))
 print('STC', get_mean(err_stc), get_geo_mean(time_stc))
@@ -146,7 +146,7 @@ ax_err.set_xlim((0.8, 1e-4))
 #    ax_time.plot((x, x), ylim, color="gray", lw=1, alpha=0.5, linestyle='--')
 
 
-plt.savefig("isol24.pdf")
-plt.savefig("isol24.png")
+plt.savefig(config.fig("isol24.pdf"))
+plt.savefig(config.fig("isol24.png"))
 plt.close()
 #plt.show()

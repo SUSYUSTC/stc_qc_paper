@@ -13,8 +13,8 @@ def gauss(x):
     return 1 / np.sqrt(2 * np.pi) * np.exp(-x**2 / 2)
 
 
-E_CCSD = np.loadtxt("./benzene_energy_CCSD_tz")
-E_pt = np.loadtxt("./benzene_energy_pt_tz")
+E_CCSD = np.loadtxt(config.data("benzene_energy_CCSD_tz"))
+E_pt = np.loadtxt(config.data("benzene_energy_pt_tz"))
 
 CCSD_ref = -1.0710897
 error_CCSD = E_CCSD - CCSD_ref
@@ -144,5 +144,5 @@ for ax, lab in zip([ax1, ax2], ['A', 'B']):
 
 plt.tight_layout()
 #plt.show()
-plt.savefig("unbiaseness.png")
+plt.savefig(config.fig("unbiaseness.png"))
 plt.close()

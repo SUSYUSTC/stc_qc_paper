@@ -44,5 +44,5 @@ plt.xlabel('Supercell size')
 plt.title('Total computation time (min)')
 
 plt.tight_layout()
-plt.savefig("solid.png")
+plt.savefig(config.fig("solid.png"))
 #plt.show()

@@ -40,7 +40,7 @@ def CCSD_flops_pyscf(nocc, nvir):
             nocc**3*nvir**3*2 * 2 + nocc**3*nvir**2*2 * 4)      # Wiabj
 
 
-ns, nsamples_local, nsamples_local_critical, nsamples_canonical, nsamples_canonical_critical, nsamples_pt= np.loadtxt("./Nsample_water").T
+ns, nsamples_local, nsamples_local_critical, nsamples_canonical, nsamples_canonical_critical, nsamples_pt= np.loadtxt(config.data("Nsample_water")).T
 
 lw = 2.0
 s1 = 30
@@ -110,7 +110,7 @@ plt.legend([handles[i] for i in order], [labels[i] for i in order], frameon=Fals
 
 plt.sca(ax3)
 lw = 2.0
-ns, t_Rov, t_mix, t_exact = np.loadtxt("./stats_water").T
+ns, t_Rov, t_mix, t_exact = np.loadtxt(config.data("stats_water")).T
 
 raw_plot(ns, t_mix, 'STC-CCSD(T), pure impl', c=config.color_STC, linestyle='--', linewidth=lw)
 raw_plot(ns, t_Rov, 'STC-CCSD(T), optimized impl', c=config.color_STC, linestyle='-', linewidth=lw)
@@ -135,6 +135,6 @@ for ax, lab in zip([ax1, ax2, ax3], ['A', 'B', 'C']):
     )
 
 plt.tight_layout()
-plt.savefig("scaling.png")
+plt.savefig(config.fig("scaling.png"))
 plt.close()
 #plt.show()
