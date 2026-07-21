@@ -1,14 +1,14 @@
-# run/xyz — 几何结构说明
+# run/xyz — Geometry Description
 
-计算所用的分子 / 周期体系几何结构（`.xyz`）与晶格（`.lattice`）文件。
+Molecular / periodic-system geometries (`.xyz`) and lattice (`.lattice`) files used in the calculations.
 
-| 子目录 | 内容 |
-|--------|------|
-| `water/` | 水团簇几何（`waterN_min.xyz`），用于 STC-CCSD 缩放与无偏性研究 |
-| `benchmarking/` | 分子基准集合（对比 DLPNO / exact）的几何 |
-| `ISOL24/` | ISOL24 反应集的 22 个体系几何 |
-| `cell/` | 周期性体系（如 Si-掺杂金刚石）的 `.xyz` 与对应 `.lattice` 晶格文件（成对存放） |
-| `lattice/` | H-hBN 与 PAH 超胞几何（用于局域轨道与固体耗时图） |
-| `benzene/` | 苯单分子几何 `benzene.xyz`（无偏性验证用） |
+| Subdirectory | Contents |
+|--------------|----------|
+| `water/` | Water-cluster geometries (`waterN_min.xyz`), used for STC-CCSD scaling and unbiasedness studies |
+| `benchmarking/` | Geometries of the molecular benchmark set (vs. DLPNO / exact) |
+| `ISOL24/` | Geometries of the 22 systems in the ISOL24 reaction set |
+| `cell/` | `.xyz` files of periodic systems (e.g. Si-doped diamond) together with the corresponding `.lattice` lattice files (stored as pairs) |
+| `lattice/` | H-hBN and PAH supercell geometries (used for local-orbital and solid wall-time figures) |
+| `benzene/` | Benzene single-molecule geometry `benzene.xyz` (used for unbiasedness verification) |
 
-注：`.lattice` 文件与对应 `.xyz` 配套，配合驱动脚本的 `--pbc` 选项使用。
+Note: Each `.lattice` file is paired with its corresponding `.xyz` and is used together with the `--pbc` option of the driver script.

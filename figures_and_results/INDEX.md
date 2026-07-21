@@ -1,41 +1,40 @@
-# figures_and_results — 目录说明
+# figures_and_results — Directory Overview
 
-论文所有绘图脚本、处理好的数据、生成图与输入素材的归档。
+An archive of all plotting scripts, processed data, generated figures, and input assets used in the paper.
 
-## 目录结构
+## Directory Structure
 
-- `scripts/` — 主文图的绘制脚本与共享模块（`config.py` / `libformat.py`）
-- `data/` — 绘图用的处理后数据文件（无扩展名，纯文本数值表）
-- `figures/` — 主文生成图（scaling / benchmarking / isol24 / locality / solid / unbiaseness）
-- `assets/` — 绘图输入的图片素材（如 H-hBN 超胞示意图 `hBN_3x5.png`）
-- `diagrams/` — 方法示意图（tensor contraction / (T) 等），由 `plot_diagram*.py` 生成 `diagram_*.png`
-- `results_benchmarking/` — 分子基准（对比 DLPNO / exact）的数据与 MAE 计算脚本
-- `SI/` — 补充材料图（收敛性、canonical/Haar 缩放）的脚本与数据
+- `scripts/` — plotting scripts for the main-text figures, plus shared modules (`config.py` / `libformat.py`)
+- `data/` — processed data files for plotting (no extension; plain-text numeric tables)
+- `figures/` — main-text generated figures (scaling / benchmarking / isol24 / locality / solid / unbiaseness)
+- `assets/` — input image assets for plotting (e.g. the H-hBN supercell schematic `hBN_3x5.png`)
+- `diagrams/` — method schematics (tensor contraction / (T), etc.), generated as `diagram_*.png` by `plot_diagram*.py`
+- `results_benchmarking/` — data and MAE computation scripts for molecular benchmarks (vs. DLPNO / exact)
+- `SI/` — scripts and data for supplementary-information figures (convergence, canonical/Haar scaling)
 
-## scripts/ 说明
+## scripts/ Description
 
-| 文件 | 作用 | 读取数据 | 输出图 |
-|------|------|----------|--------|
-| `config.py` | 颜色/字体配置 + 路径常量 `DATA_DIR`/`FIG_DIR`/`ASSET_DIR` | — | — |
-| `libformat.py` | 对数刻度等绘图辅助函数 | — | — |
-| `main_plot_scaling.py` | 图：水团簇 `N_sample` 与耗时随体系规模缩放 | `Nsample_water`, `stats_water` | `scaling.png` |
-| `main_plot_benchmarking.py` | 分子基准：误差/耗时对比 DLPNO & exact | `stats_all` | `benchmarking.png` |
-| `main_plot_isol24.py` | ISOL24 反应集基准 | `stats_isol24` | `isol24.png`, `isol24.pdf` |
-| `main_plot_locality.py` | 局域轨道性能（PAH / H-hBN） | `data_locality` (+ `hBN_3x5.png`) | `locality.png` |
-| `main_plot_solid.py` | 周期性 Si-掺杂金刚石耗时缩放 | （硬编码数值） | `solid.png` |
-| `main_plot_unbiaseness.py` | 苯的无偏性验证（CCSD / (T) 误差分布） | `benzene_energy_CCSD_tz`, `benzene_energy_pt_tz` | `unbiaseness.png` |
+| File | Purpose | Reads data | Output figure |
+|------|---------|------------|---------------|
+| `config.py` | Color/font configuration + path constants `DATA_DIR`/`FIG_DIR`/`ASSET_DIR` | — | — |
+| `libformat.py` | Plotting helper functions (log-scale, etc.) | — | — |
+| `main_plot_scaling.py` | Figure: `N_sample` and wall-time scaling of water clusters with system size | `Nsample_water`, `stats_water` | `scaling.png` |
+| `main_plot_benchmarking.py` | Molecular benchmark: error/wall-time vs. DLPNO & exact | `stats_all` | `benchmarking.png` |
+| `main_plot_isol24.py` | ISOL24 reaction-set benchmark | `stats_isol24` | `isol24.png`, `isol24.pdf` |
+| `main_plot_locality.py` | Local-orbital performance (PAH / H-hBN) | `data_locality` (+ `hBN_3x5.png`) | `locality.png` |
+| `main_plot_solid.py` | Wall-time scaling for periodic Si-doped diamond | (hard-coded values) | `solid.png` |
+| `main_plot_unbiaseness.py` | Unbiasedness verification on benzene (CCSD / (T) error distributions) | `benzene_energy_CCSD_tz`, `benzene_energy_pt_tz` | `unbiaseness.png` |
 
-**运行约定**：脚本内的数据/图片/素材路径通过 `config.data()` / `config.fig()` / `config.asset()`
-解析为相对于脚本位置的绝对路径，因此无论从哪个工作目录运行都能正确找到文件。
+**Run convention**: The data/image/asset paths inside the scripts are resolved via `config.data()` / `config.fig()` / `config.asset()` to absolute paths relative to the script location, so the files are found correctly regardless of the working directory from which the script is run.
 
-## data/ 数据文件
+## data/ Data Files
 
-| 文件 | 用途 |
-|------|------|
-| `Nsample_water` | 水团簇达到目标误差所需样本数 |
-| `stats_water` | 水团簇各实现的计算耗时 |
-| `stats_all` | 分子基准集合的误差/耗时汇总 |
-| `stats_isol24` | ISOL24 反应集的误差/耗时 |
-| `data_locality` | PAH / H-hBN 不同超胞的 `N_sample` 与耗时 |
-| `benzene_energy_CCSD_tz` | 苯 cc-pVTZ 下 STC-CCSD 能量样本 |
-| `benzene_energy_pt_tz` | 苯 cc-pVTZ 下 STC-(T) 能量样本 |
+| File | Purpose |
+|------|---------|
+| `Nsample_water` | Number of samples required for water clusters to reach the target error |
+| `stats_water` | Wall-time per realization for water clusters |
+| `stats_all` | Error/wall-time summary for the molecular benchmark set |
+| `stats_isol24` | Error/wall-time for the ISOL24 reaction set |
+| `data_locality` | `N_sample` and wall-time for PAH / H-hBN supercells of different sizes |
+| `benzene_energy_CCSD_tz` | STC-CCSD energy samples for benzene at cc-pVTZ |
+| `benzene_energy_pt_tz` | STC-(T) energy samples for benzene at cc-pVTZ |
