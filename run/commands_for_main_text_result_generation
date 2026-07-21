@@ -20,7 +20,7 @@ python stc_cc_general.py xyz/waterXXX_min.xyz 6-31g 0.4 12 -method opt       -di
 # for benzene energy stats
 # More iterations are used here to really converge the systematic bias to 1e-6 Hartree level, but such low bias looks unnecessary for any practical application, so it is shown here just for demonstration.
 # The optimized implementation in fact gives faster convergence of systematic bias
-python stc_cc_general.py xyz/benzene.xyz cc-pvtz 0.5 40 -method pure -diis 4 -shift 4 -pt 6,4,0.2
+python stc_cc_general.py xyz/benzene/benzene.xyz cc-pvtz 0.5 40 -method pure -diis 4 -shift 4 -pt 6,4,0.2
 
 # for all benchmarking-level calculations below, the local STC-CCSD with optimized implementations are used. The freezing option generates some 1e-6 Hartree level error which is negligible for practical applications.
 

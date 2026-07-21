@@ -10,27 +10,27 @@ import matplotlib.pyplot as plt
 get_mean = lambda x: np.mean(x)
 get_geo_mean = lambda x: np.exp(np.mean(np.log(x)))
 
-Nao = np.loadtxt("./stats_all", skiprows=1, usecols=2).astype(int)
+Nao = np.loadtxt(config.data("stats_all"), skiprows=1, usecols=2).astype(int)
 order = np.argsort(Nao)
 Nao = Nao[order]
 
-molecules = np.loadtxt("./stats_all", skiprows=1, usecols=0, dtype=str)[order]
+molecules = np.loadtxt(config.data("stats_all"), skiprows=1, usecols=0, dtype=str)[order]
 molecules = [mol.replace("-", " ") for mol in molecules]
 y = np.arange(len(molecules))
 
-err_dlpno_normal = np.abs(np.loadtxt("./stats_all", skiprows=1, usecols=3))[order]
-err_dlpno_tight  = np.abs(np.loadtxt("./stats_all", skiprows=1, usecols=5))[order]
-err_stc          = np.abs(np.loadtxt("./stats_all", skiprows=1, usecols=7))[order]
+err_dlpno_normal = np.abs(np.loadtxt(config.data("stats_all"), skiprows=1, usecols=3))[order]
+err_dlpno_tight  = np.abs(np.loadtxt(config.data("stats_all"), skiprows=1, usecols=5))[order]
+err_stc          = np.abs(np.loadtxt(config.data("stats_all"), skiprows=1, usecols=7))[order]
 
-time_dlpno_normal = np.loadtxt("./stats_all", skiprows=1, usecols=4)[order]
-time_dlpno_tight  = np.loadtxt("./stats_all", skiprows=1, usecols=6)[order]
-time_stc          = np.loadtxt("./stats_all", skiprows=1, usecols=8)[order]
+time_dlpno_normal = np.loadtxt(config.data("stats_all"), skiprows=1, usecols=4)[order]
+time_dlpno_tight  = np.loadtxt(config.data("stats_all"), skiprows=1, usecols=6)[order]
+time_stc          = np.loadtxt(config.data("stats_all"), skiprows=1, usecols=8)[order]
 
-time_b3lyp        = np.loadtxt("./stats_all", skiprows=1, usecols=10)[order]
-time_wb97m_v      = np.loadtxt("./stats_all", skiprows=1, usecols=11)[order]
+time_b3lyp        = np.loadtxt(config.data("stats_all"), skiprows=1, usecols=10)[order]
+time_wb97m_v      = np.loadtxt(config.data("stats_all"), skiprows=1, usecols=11)[order]
 
 err_exact = np.zeros_like(err_stc)  # zero error for exact
-time_exact          = np.loadtxt("./stats_all", skiprows=1, usecols=9)[order]
+time_exact          = np.loadtxt(config.data("stats_all"), skiprows=1, usecols=9)[order]
 
 color_STC = config.color_STC
 color_normal = config.color_2
@@ -137,7 +137,7 @@ def add_serrated_edge(ax, x0, n_teeth=6, width=0.02):
 
 
 add_serrated_edge(ax_err, 3.0, n_teeth=120, width=0.05)
-plt.savefig("benchmarking.png")
+plt.savefig(config.fig("benchmarking.png"))
 plt.close()
 
 print('DLPNO/Normal', get_mean(err_dlpno_normal), get_geo_mean(time_dlpno_normal))
