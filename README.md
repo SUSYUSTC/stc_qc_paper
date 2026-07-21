@@ -25,12 +25,12 @@ The positional arguments are the geometry, basis, target CCSD energy error in mH
 
 ## Results represented in the paper
 
-![N_sample scaling behavior on water clusters](figures_and_results/figures/scaling.png)
+![Benchmarking against DLPNO-CCSD(T)](figures_and_results/figures/benchmarking.png)
 
+<!-- FIGURE: figures_and_results/figures/scaling.png — N_sample scaling behavior on water clusters -->
 <!-- FIGURE: figures_and_results/figures/unbiaseness.png — unbiasedness verification on benzene -->
 <!-- FIGURE: figures_and_results/figures/solid.png — solid-state STC-CCSD(T) results -->
 <!-- FIGURE: figures_and_results/figures/locality.png — local orbital performance -->
-<!-- FIGURE: figures_and_results/figures/benchmarking.png — benchmarking against DLPNO-CCSD(T) -->
 
 The calculations include water clusters, benzene, periodic Si-doped diamond, PAH and H-hBN lattices, molecular benchmarks, and the ISOL24 reaction dataset.
 
